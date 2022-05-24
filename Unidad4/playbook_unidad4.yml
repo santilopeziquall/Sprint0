@@ -1,0 +1,18 @@
+---
+- name: Practice jinja templating
+  hosts: PE
+  connection: local
+  gather_facts: false
+
+  tasks:
+
+    - name: create destination directory
+      file:
+        path: ./salida
+        state: directory
+        mode: '0755'
+    - name: create a file for each host in the destination directory
+      template:
+        src: template_unidad4.j2
+        dest: ./salida/salida_hosts
+        mode: '0666'

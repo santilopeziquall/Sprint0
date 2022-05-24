@@ -1,0 +1,23 @@
+#*************************************************************
+#
+# Device: 'Lab_R1' - IP: localhost - OS: junos
+#
+#*************************************************************
+# Interfaces
+interfaces {
+  lo0 {
+    replace: active:  unit 10 {
+      description "VPN Customer_A";
+      enable;
+    }
+  }  
+  lo0 {
+    delete:  unit 11;
+  }
+  lo0 {
+    replace: inactive:  unit 12 {
+      description "VPN Customer_C | BAJA TEMPORAL";
+      disable;
+    }
+  }  
+}

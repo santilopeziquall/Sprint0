@@ -1,0 +1,29 @@
+#*************************************************************
+#
+# Device: '{{hostname}}' - IP: {{inventory_hostname}} - OS: {{ ansible_network_os }}
+#
+#*************************************************************
+# Interfaces
+interfaces {
+{% for l3vpn in l3vpn: %}
+{% if l3vpn.Status == "0" %}
+  lo0 {
+    replace: active:  unit {{l3vpn.customerID}} {
+      description "VPN {{l3vpn.CustomerName}}";
+      enable;
+    }
+  }  
+{% elif l3vpn.Status == "1" %}
+  lo0 {
+    replace: inactive:  unit {{l3vpn.customerID}} {
+      description "VPN {{l3vpn.CustomerName}} | BAJA TEMPORAL";
+      disable;
+    }
+  }  
+{% else %}
+  lo0 {
+    delete:  unit {{l3vpn.customerID}};
+  }
+{% endif %}
+{% endfor %}
+}
