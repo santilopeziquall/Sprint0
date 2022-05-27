@@ -16,6 +16,10 @@
 
 - El comando `airflow initdb` esta deprecado usar: `airflow db init`
 
+##### Cuando se quiere entrar a airflow
+- Crear un usuario default admin admin
+`airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin`
+
 ##### Cuando se quiere hacer import de un operator propio
 
 En el tutorial te indican que hagas el import de manera
