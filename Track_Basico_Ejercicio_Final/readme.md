@@ -21,3 +21,6 @@ cambiando sus permisos con chmod 666 en las carpetas que estaban
 --- MUCHOS ERRORES DE PERMISOS -- 
 
 https://docs.influxdata.com/kapacitor/v1.6/introduction/getting-started/#start-kapacitor
+
+### Instalacion de influx db client
+No viene influxdb con el lcliente cuando se installa con apt install

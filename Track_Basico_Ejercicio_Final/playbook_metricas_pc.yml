@@ -1,0 +1,84 @@
+- name: 'Tomando metricas de mi PC'
+  hosts: localhost  
+  tasks:
+  - name: 'Install iostat'
+    apt:
+      name: sysstat
+  
+  - name: 'Create File to direct iostat output'
+    file: 
+      path: ./salida_iostat.json
+      state: touch
+      mode: u=rw,g=rw,o=rw
+  
+  - name: 'Run iostat and get output into json'
+    raw: iostat -c -o JSON > ./salida_iostat.json
+  
+  - name: 'Create Temp File to direct free output'
+    file: 
+      path: ./salida_free.txt
+      state: touch
+      mode: u=rw,g=rw,o=rw
+  
+  - name: 'Run free and get output into txt'
+    raw: free -h > ./salida_free.txt
+  
+  - name: 'Parse Raw Free text into JSON'
+    raw: bash parse_free.sh | jq > ./salida_free.json
+
+  - name: 'Remove Temp File that saved free output'
+    file: 
+      path: ./salida_free.txt
+      state: absent
+
+  - name: 'Create database'
+    influxdb_database:
+        hostname: "localhost"
+        port: 8086
+        udp_port: 4444
+        username: "admin"
+        password: "admin"
+        database_name: "Carga_ansible"
+  
+  - name: "Display the iostat JSON file content"
+    shell: cat config.json
+    register: result
+
+  - name: save the Json data to a Variable as a Fact
+    set_fact:
+      jsondata: "{{ result.stdout | from_json }}"
+
+  - name: setNodeName
+    set_fact:
+      node_name: "{{ jsondata | json_query(jmesquery) }}"
+    vars:
+      jmesquery: 'sysstat.host[0].nodename'
+
+  - name: 'Debug the values'
+    debug: 
+    msg:
+    - "{{ node_name }}"
+
+
+  
+#  - name: Write points into database
+#    influxdb_write:
+#        hostname: "localhost"
+#        database_name: "Carga_ansible"
+#        udp_port: 4444
+#        data_points:
+#          - measurement: connections
+#            tags:
+#              host: server01
+#              region: us-west
+#            time: "{{ ansible_date_time.iso8601 }}"
+#            fields:
+#              value: 2000
+#          - measurement: connections
+#            tags:
+#              host: server02
+#              region: us-east
+#            time: "{{ ansible_date_time.iso8601 }}"
+#            fields:
+#              value: 3000
+#

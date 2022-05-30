@@ -1,0 +1,17 @@
+{"sysstat": {
+	"hosts": [
+		{
+			"nodename": "worknotebook",
+			"sysname": "Linux",
+			"release": "5.13.0-44-generic",
+			"machine": "x86_64",
+			"number-of-cpus": 8,
+			"date": "30/05/22",
+			"statistics": [
+				{
+					"avg-cpu":  {"user": 10.41, "nice": 0.02, "system": 3.35, "iowait": 1.74, "steal": 0.00, "idle": 84.48}
+				}
+			]
+		}
+	]
+}}
