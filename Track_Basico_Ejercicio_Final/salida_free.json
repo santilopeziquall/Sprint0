@@ -1,8 +1,8 @@
 {
-  "Memoria_Total": "7,6Gi",
-  "Memoria_EnUso": "4,0Gi",
-  "Memoria_Libre": "735Mi",
-  "Memoria_Compartida": "533Mi",
-  "Memoria_BuffCache": "2,8Gi",
-  "Memoria_Disponible": "2,7Gi"
+  "Memoria_Total": "8132",
+  "Memoria_EnUso": "4805",
+  "Memoria_Libre": "512",
+  "Memoria_Compartida": "490",
+  "Memoria_BuffCache": "2814",
+  "Memoria_Disponible": "2523"
 }

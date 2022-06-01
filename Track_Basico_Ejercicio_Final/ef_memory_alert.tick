@@ -1,0 +1,11 @@
+dbrp "Carga_ansible"."autogen"
+
+stream
+    // Select memory usage from the 'Carga_ansible' database pc_stats measurementS
+    |from()
+        .measurement('pc_stats')
+    // Triggers a critical alert when memory usage is over 3000 MB
+    |alert()
+        .crit(lambda: int("mem_en_uso") >  3000)
+        // Write each alert to a file.
+        .log('/home/santilopez/Documents/GitHub/Sprint0/Track_Basico_Ejercicio_Final/alerts_ef.log')

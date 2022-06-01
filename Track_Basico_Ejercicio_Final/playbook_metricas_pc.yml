@@ -1,4 +1,4 @@
-- name: 'Tomando metricas de mi PC'
+- name: 'Taking metrics from my PC'
   hosts: localhost  
   tasks:
   - name: 'Install iostat'
@@ -21,7 +21,7 @@
       mode: u=rw,g=rw,o=rw
   
   - name: 'Run free and get output into txt'
-    raw: free -h > ./salida_free.txt
+    raw: free --mega > ./salida_free.txt
   
   - name: 'Parse Raw Free text into JSON'
     raw: bash parse_free.sh | jq > ./salida_free.json
@@ -39,46 +39,84 @@
         username: "admin"
         password: "admin"
         database_name: "Carga_ansible"
-  
-  - name: "Display the iostat JSON file content"
-    shell: cat config.json
-    register: result
 
-  - name: save the Json data to a Variable as a Fact
+  - name: 'Save the iostat JSON file data to a Variable as a Fact'
     set_fact:
-      jsondata: "{{ result.stdout | from_json }}"
+      iostat_jsondata: "{{ lookup('file','salida_iostat.json') | from_json }}"
 
-  - name: setNodeName
+  - name: 'Save the free JSON file data to a Variable as a Fact'
     set_fact:
-      node_name: "{{ jsondata | json_query(jmesquery) }}"
+      free_jsondata: "{{ lookup('file','salida_free.json') | from_json }}"     
+
+  - name: 'Query the iostat JSON file content to get relevant values'
+    set_fact:
+      node_name: "{{iostat_jsondata | json_query(jmesquery_node)}}"
+      sys_name: "{{iostat_jsondata | json_query(jmesquery_system)}}"
+      cpu_user: "{{ iostat_jsondata | json_query(jmesquery1) }}"
+      cpu_nice: "{{ iostat_jsondata | json_query(jmesquery2) }}"
+      cpu_system: "{{ iostat_jsondata | json_query(jmesquery3) }}"
+      cpu_iowait: "{{ iostat_jsondata | json_query(jmesquery4) }}"
+      cpu_steal: "{{ iostat_jsondata | json_query(jmesquery5) }}"
+      cpu_idle: "{{ iostat_jsondata | json_query(jmesquery6) }}"
+      
     vars:
-      jmesquery: 'sysstat.host[0].nodename'
+      jmesquery_node: 'sysstat.hosts[0].nodename'
+      jmesquery_system: 'sysstat.hosts[0].sysname'
+      jmesquery1: 'sysstat.hosts[0].statistics[0]."avg-cpu".user'
+      jmesquery2: 'sysstat.hosts[0].statistics[0]."avg-cpu".nice'
+      jmesquery3: 'sysstat.hosts[0].statistics[0]."avg-cpu".system'
+      jmesquery4: 'sysstat.hosts[0].statistics[0]."avg-cpu".iowait'
+      jmesquery5: 'sysstat.hosts[0].statistics[0]."avg-cpu".steal'
+      jmesquery6: 'sysstat.hosts[0].statistics[0]."avg-cpu".idle'
+  
+  - name: 'Query the iostat JSON file content to get relevant values'
+    set_fact:
+      mem_total: "{{ free_jsondata | json_query(jmesquery1) }}"
+      mem_en_uso: "{{ free_jsondata | json_query(jmesquery2) }}"
+      mem_libre: "{{ free_jsondata | json_query(jmesquery3) }}"
+      mem_compartida: "{{ free_jsondata | json_query(jmesquery4) }}"
+      mem_buffcache: "{{ free_jsondata | json_query(jmesquery5) }}"
+      mem_disponible: "{{ free_jsondata | json_query(jmesquery6) }}"
+    
+    vars:
+      jmesquery1: 'Memoria_Total'
+      jmesquery2: 'Memoria_EnUso'
+      jmesquery3: 'Memoria_Libre'
+      jmesquery4: 'Memoria_Compartida'
+      jmesquery5: 'Memoria_BuffCache'
+      jmesquery6: 'Memoria_Disponible'
 
-  - name: 'Debug the values'
-    debug: 
-    msg:
-    - "{{ node_name }}"
-
+  - name: 'Imprimir variables para test'
+    debug:
+      msg: 
+        - "User: {{cpu_user}} System: {{mem_total}}"
+        - "CPU_USER: {{cpu_user}}"
+        - "CPU_IDLE: {{cpu_idle}}"
+        - "CPU_IDLE: {{cpu_system}}"
+        - "MEMORY_TOTAL: {{mem_total}}"
 
   
-#  - name: Write points into database
-#    influxdb_write:
-#        hostname: "localhost"
-#        database_name: "Carga_ansible"
-#        udp_port: 4444
-#        data_points:
-#          - measurement: connections
-#            tags:
-#              host: server01
-#              region: us-west
-#            time: "{{ ansible_date_time.iso8601 }}"
-#            fields:
-#              value: 2000
-#          - measurement: connections
-#            tags:
-#              host: server02
-#              region: us-east
-#            time: "{{ ansible_date_time.iso8601 }}"
-#            fields:
-#              value: 3000
-#
+  - name: Write points into database
+    influxdb_write:
+        hostname: "localhost"
+        database_name: "Carga_ansible"
+        udp_port: 4444
+        data_points:
+          - measurement: pc_stats
+            tags:
+              node_name: "{{ node_name }}"
+              system_name: "{{ sys_name }}"
+            time: "{{ ansible_date_time.iso8601 }}"
+            fields:
+              cpu_user: "{{ cpu_user }}"
+              cpu_nice: "{{ cpu_nice | float }}"
+              cpu_system: "{{ cpu_system | float }}"
+              cpu_iowait: "{{ cpu_iowait |float }}"
+              cpu_steal: "{{ cpu_steal | float}}"
+              cpu_idle: "{{ cpu_idle | float }}"
+              mem_total: "{{ mem_total }}" 
+              mem_en_uso: "{{ mem_en_uso }}"
+              mem_libre: "{{ mem_libre }}"
+              mem_compartida: "{{ mem_compartida }}"
+              mem_buffcache: "{{ mem_buffcache }}"
+              mem_disponible: "{{ mem_disponible }}"
